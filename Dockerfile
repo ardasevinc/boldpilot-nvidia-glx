@@ -22,7 +22,7 @@ ENV REFRESH 60
 ENV DPI 96
 ENV CDEPTH 24
 ENV VIDEO_PORT DFP
-ENV PASSWD mypasswd
+ENV PASSWD boldpilot
 ENV NOVNC_ENABLE false
 ENV WEBRTC_ENCODER nvh264enc
 ENV WEBRTC_ENABLE_RESIZE false
@@ -43,13 +43,19 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
-# Install Xorg, MATE Desktop, and others
 RUN dpkg --add-architecture i386 && \
     apt-get update && apt-get install --no-install-recommends -y \
+        ca-certificates python3-pip
+
+RUN pip3 install apt-mirror-updater
+
+RUN apt-mirror-updater -c http://ubuntu.vargonen.com/ubuntu/
+
+# Install Xorg, MATE Desktop, and others
+RUN apt-get update && apt-get install --no-install-recommends -y \
         software-properties-common \
         apt-utils \
         build-essential \
-        ca-certificates \
         kmod \
         libc6:i386 \
         libc6-dev \
@@ -107,23 +113,22 @@ RUN dpkg --add-architecture i386 && \
     rm -rf /var/lib/apt/lists/*
 
 # Wine, Winetricks, and PlayOnLinux, comment out the below lines to disable
-ARG WINE_BRANCH=devel
-RUN if [ "${UBUNTU_RELEASE}" = "18.04" ]; then add-apt-repository ppa:cybermax-dexter/sdl2-backport; fi && \
-    curl -fsSL https://dl.winehq.org/wine-builds/winehq.key | APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1 apt-key add - && \
-    apt-add-repository "deb https://dl.winehq.org/wine-builds/ubuntu/ $(grep VERSION_CODENAME= /etc/os-release | cut -d= -f2) main" && \
-    apt-get update && apt-get install -y \
-        winehq-${WINE_BRANCH} \
-        q4wine \
-        playonlinux && \
-    rm -rf /var/lib/apt/lists/* && \
-    curl -fsSL -o /usr/bin/winetricks https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks && \
-    chmod 755 /usr/bin/winetricks && \
-    curl -fsSL -o /usr/share/bash-completion/completions/winetricks https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks.bash-completion
+# ARG WINE_BRANCH=devel
+# RUN if [ "${UBUNTU_RELEASE}" = "18.04" ]; then add-apt-repository ppa:cybermax-dexter/sdl2-backport; fi && \
+#     curl -fsSL https://dl.winehq.org/wine-builds/winehq.key | APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1 apt-key add - && \
+#     apt-add-repository "deb https://dl.winehq.org/wine-builds/ubuntu/ $(grep VERSION_CODENAME= /etc/os-release | cut -d= -f2) main" && \
+#     apt-get update && apt-get install -y \
+#         winehq-${WINE_BRANCH} \
+#         q4wine \
+#         playonlinux && \
+#     rm -rf /var/lib/apt/lists/* && \
+#     curl -fsSL -o /usr/bin/winetricks https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks && \
+#     chmod 755 /usr/bin/winetricks && \
+#     curl -fsSL -o /usr/share/bash-completion/completions/winetricks https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks.bash-completion
 
 # Install latest selkies-gstreamer (https://github.com/selkies-project/selkies-gstreamer) build, Python application, and web application
 RUN apt-get update && apt-get install --no-install-recommends -y \
         build-essential \
-        python3-pip \
         python3-dev \
         python3-gi \
         python3-setuptools \
